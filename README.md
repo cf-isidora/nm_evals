@@ -38,6 +38,10 @@ This system evaluates proper name handling according to the CF Terminology Manag
 ## Installation
 
 1. Clone this repository
+   ```
+   git clone https://github.com/cf-isidora/nm_evals.git
+   cd nm_evals
+   ```
 2. Create a virtual environment:
    ```
    python -m venv .venv
@@ -273,3 +277,30 @@ python name_eval_system.py --names "김지원" "박서준" --local-only
 # Combine with other options
 python name_eval_system.py --file names.txt --direction KO-EN --local-only
 ```
+
+## Recent Updates
+
+- **Integrated Real Person Name Verifier**: Added new module `real_person_name_verifier.py` that combines both Korean-to-English and English-to-Korean name evaluation with specialized rules for real person names
+- **Enhanced Directory Structure**: Organized output files into the `reports/` directory
+- **Improved Teamwork Integration**: Fixed authentication issues and added better error handling
+- **LangSmith Integration**: Made LangSmith integration optional with proper fallbacks
+
+## Contributing
+
+Contributions to the CF Name Evaluation System are welcome. Here's how you can contribute:
+
+1. Fork the repository on GitHub
+2. Create a new branch for your feature or bugfix
+3. Make your changes
+4. Submit a pull request with a clear description of the changes
+
+### Guidelines
+
+- Follow the existing code style and conventions
+- Add tests for new features
+- Update documentation to reflect your changes
+- Ensure your changes don't break existing functionality
+
+## License
+
+This project is licensed for internal use only and is not available for public distribution.

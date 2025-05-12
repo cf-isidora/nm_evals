@@ -436,7 +436,7 @@ def parse_arguments():
     teamwork_group.add_argument(
         "--no-teamwork",
         action="store_true",
-        help="Disable all Teamwork integration (overrides --verify-in-teamwork)"
+        help="Disable all Teamwork integration (overrides --verify-in-teamwork and --post-to-teamwork)"
     )
     
     return parser.parse_args()
@@ -585,12 +585,12 @@ def main():
         print(f"https://smith.langchain.com/project/{project_name}")
     
     # Print Teamwork info if applicable
-    if args.verify_in_teamwork or args.post_to_teamwork:
+    if (args.verify_in_teamwork or args.post_to_teamwork) and not args.no_teamwork:
         teamwork_domain = os.environ.get("TEAMWORK_DOMAIN", "cultureflipper")
         print(f"\nTeamwork Integration:")
-        if args.verify_in_teamwork:
+        if args.verify_in_teamwork and not args.no_teamwork:
             print("- Name verification was performed against Teamwork data")
-        if args.post_to_teamwork:
+        if args.post_to_teamwork and not args.no_teamwork:
             print("- Evaluation results were posted to Teamwork")
             if args.teamwork_project_id:
                 print(f"- View tasks in project: https://{teamwork_domain}.teamwork.com/app/projects/{args.teamwork_project_id}/tasks")

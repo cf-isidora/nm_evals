@@ -112,7 +112,7 @@ python name_eval_system.py --names "김지원" "박서준" --local-only
 python name_eval_system.py --file names_list.txt --direction KO-EN --output-dir custom_reports
 
 # Specialized real person name verification from file
-python real_person_name_verifier.py --file celebrity_names.txt --auto-detect
+python real_person_name_verifier.py --file celebrity_names.txt --auto-detect --verify-in-teamwork
 
 # Batch processing with custom output
 python korean_name_cli.py --file korean_names.txt --direction KO-EN --output custom_report.html
@@ -239,6 +239,12 @@ The following features are available when Teamwork integration is enabled:
    ```
    python name_eval_system.py --names "김지원" --post-to-teamwork --teamwork-project-id YOUR_PROJECT_ID
    ```
+
+This will create a task in the specified Teamwork project containing the evaluation results for each name, including:
+- Compliance status
+- Overall score
+- Individual rule scores
+- Recommendations
 
 ## Output Files
 

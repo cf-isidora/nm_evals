@@ -37,6 +37,7 @@ from dotenv import load_dotenv
 # Import Teamwork integration if available
 try:
     from teamwork_integration import verify_name_in_teamwork
+
     TEAMWORK_AVAILABLE = True
 except ImportError:
     TEAMWORK_AVAILABLE = False
@@ -44,30 +45,37 @@ except ImportError:
 # Load environment variables
 load_dotenv()
 
+
 class NameEvaluationResult(BaseModel):
     """Schema for name evaluation results."""
+
     name: str = Field(description="The name being evaluated")
     language_direction: str = Field(description="EN-KO or KO-EN direction")
     compliant: bool = Field(description="Whether the name complies with guidelines")
-    rule_scores: Dict[str, int] = Field(description="Scores for each rule category (0-100)")
+    rule_scores: Dict[str, int] = Field(
+        description="Scores for each rule category (0-100)"
+    )
     overall_score: int = Field(description="Overall compliance score (0-100)")
     recommendations: List[str] = Field(description="Recommendations for improvement")
     verification_sources: List[str] = Field(description="Sources used for verification")
     notes: Optional[str] = Field(description="Additional notes about evaluation")
-    teamwork_verification: Optional[Dict[str, Any]] = Field(description="Teamwork verification results if available")
+    teamwork_verification: Optional[Dict[str, Any]] = Field(
+        description="Teamwork verification results if available"
+    )
+
 
 def create_ko_name_evaluator_chain():
     """
     Creates a chain for evaluating Korean name translations.
-    
+
     Returns:
         A function that evaluates names
     """
     # Initialize the OpenAI model
-    model_name = os.environ.get("OPENAI_MODEL_NAME", "gpt-4")
+    model_name = os.environ.get("OPENAI_MODEL_NAME", "gpt-4o-mini")
     temperature = float(os.environ.get("OPENAI_TEMPERATURE", "0"))
     llm = ChatOpenAI(model_name=model_name, temperature=temperature)
-    
+
     # Create a prompt template based on the CF Terminology Management Manual
     prompt = ChatPromptTemplate.from_template(
         """You are a terminology expert following the CF Terminology Management Manual.
@@ -131,61 +139,69 @@ def create_ko_name_evaluator_chain():
         4. Sources that should be checked
         """
     )
-    
+
     # Create the extraction chain for structured output - updated approach
     extraction_chain = create_structured_output_chain(NameEvaluationResult, llm, prompt)
-    
+
     # Build the complete evaluation function
     def evaluate_name(name: str, direction: str = "KO-EN", check_teamwork: bool = True):
         # Check Teamwork for previous translations if enabled and available
         teamwork_info = ""
         teamwork_verification = None
-        
+
         if check_teamwork and TEAMWORK_AVAILABLE and os.environ.get("TEAMWORK_API_KEY"):
             try:
                 teamwork_verification = verify_name_in_teamwork(name)
                 if teamwork_verification["found_in_teamwork"]:
                     teamwork_info = "TEAMWORK VERIFICATION RESULTS:\n"
-                    
+
                     # Add previous evaluations if found
                     if teamwork_verification["previous_evaluations"]:
                         teamwork_info += f"- Found {len(teamwork_verification['previous_evaluations'])} previous evaluations in Teamwork\n"
-                        for eval in teamwork_verification["previous_evaluations"][:3]:  # Limit to first 3
-                            teamwork_info += f"  * {eval['title']} ({eval['created_at']})\n"
-                    
+                        for eval in teamwork_verification["previous_evaluations"][
+                            :3
+                        ]:  # Limit to first 3
+                            teamwork_info += (
+                                f"  * {eval['title']} ({eval['created_at']})\n"
+                            )
+
                     # Add previous translations if found
                     if teamwork_verification["previous_translations"]:
                         teamwork_info += f"- Found {len(teamwork_verification['previous_translations'])} previous translations in Teamwork\n"
-                        for trans in teamwork_verification["previous_translations"][:3]:  # Limit to first 3
-                            teamwork_info += f"  * {trans['title']} ({trans['created_at']})\n"
-                    
+                        for trans in teamwork_verification["previous_translations"][
+                            :3
+                        ]:  # Limit to first 3
+                            teamwork_info += (
+                                f"  * {trans['title']} ({trans['created_at']})\n"
+                            )
+
                     teamwork_info += f"- Verification status: {teamwork_verification['verification_status']}\n"
                 else:
                     teamwork_info = "TEAMWORK VERIFICATION RESULTS:\n- No previous records found in Teamwork\n"
             except Exception as e:
                 teamwork_info = f"TEAMWORK VERIFICATION ERROR: {str(e)}\n"
-        
+
         # Use the structured output chain directly with the input
         input_data = {
             "name": name,
             "direction": direction,
-            "teamwork_info": teamwork_info
+            "teamwork_info": teamwork_info,
         }
-        
+
         try:
             # Get structured result directly from the extraction chain
             result = extraction_chain.invoke(input_data)
-            
+
             # Add Teamwork verification data to the result
             if teamwork_verification:
                 result.teamwork_verification = teamwork_verification
-            
+
             return result
         except Exception as e:
             print(f"Error extracting structured data: {e}")
             # Fallback to text output if structured extraction fails
             evaluation_text = (prompt | llm | StrOutputParser()).invoke(input_data)
-            
+
             # Create a minimal result with the text
             return {
                 "name": name,
@@ -195,31 +211,34 @@ def create_ko_name_evaluator_chain():
                 "rule_scores": {
                     "Internal Verification": 0,
                     "External Verification": 0,
-                    "Rule Compliance": 0
+                    "Rule Compliance": 0,
                 },
                 "recommendations": ["Review the manual verification process"],
                 "verification_sources": ["CF Terminology Management Manual"],
                 "notes": f"Error in structured extraction. Raw evaluation:\n{evaluation_text}",
-                "teamwork_verification": teamwork_verification
+                "teamwork_verification": teamwork_verification,
             }
-    
+
     return evaluate_name
 
-def batch_evaluate_names(names: List[str], direction: str = "KO-EN", check_teamwork: bool = True) -> List[Dict]:
+
+def batch_evaluate_names(
+    names: List[str], direction: str = "KO-EN", check_teamwork: bool = True
+) -> List[Dict]:
     """
     Evaluates multiple names against Korean terminology guidelines.
-    
+
     Args:
         names: List of names to evaluate
         direction: Translation direction (KO-EN or EN-KO)
         check_teamwork: Whether to check Teamwork for previous translations
-        
+
     Returns:
         List of evaluation results for each name
     """
     # Create the evaluator function
     evaluate_name = create_ko_name_evaluator_chain()
-    
+
     # Process all names
     results = []
     for name in names:
@@ -232,24 +251,22 @@ def batch_evaluate_names(names: List[str], direction: str = "KO-EN", check_teamw
                 results.append(result)
         except Exception as e:
             print(f"Error evaluating {name}: {e}")
-            results.append({
-                "name": name,
-                "error": str(e),
-                "compliant": False,
-                "overall_score": 0
-            })
-    
+            results.append(
+                {"name": name, "error": str(e), "compliant": False, "overall_score": 0}
+            )
+
     # Save results to file
     os.makedirs("reports", exist_ok=True)
     with open("reports/name_evaluation_results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
-    
+
     return results
+
 
 def generate_html_report(results: List[Dict], output_file: str):
     """
     Generate an HTML report for Korean name evaluations.
-    
+
     Args:
         results: List of evaluation result dictionaries
         output_file: Output file path for HTML report
@@ -361,20 +378,20 @@ def generate_html_report(results: List[Dict], output_file: str):
     <body>
         <h1>Korean Name Evaluation Report</h1>
     """
-    
+
     # Add results to the HTML
     for result in results:
         name = result.get("name", "")
         english_notation = result.get("english_notation", "")
         overall_score = result.get("overall_score", 0)
-        
+
         # Determine score class
         score_class = "score-low"
         if overall_score >= 80:
             score_class = "score-high"
         elif overall_score >= 50:
             score_class = "score-medium"
-        
+
         html += f"""
         <div class="name-card">
             <div class="name-header">
@@ -388,7 +405,7 @@ def generate_html_report(results: List[Dict], output_file: str):
                     <div class="detail-value">{result.get("name_type", "Person")}</div>
                 </div>
         """
-        
+
         # Add detailed scores
         if result.get("detailed_scores"):
             html += f"""
@@ -396,15 +413,15 @@ def generate_html_report(results: List[Dict], output_file: str):
                     <div class="detail-label">Detailed Scores:</div>
                     <div class="detail-value">
             """
-            
+
             for criterion, score in result.get("detailed_scores", {}).items():
                 html += f"<div>{criterion}: {score}/100</div>"
-                
+
             html += """
                     </div>
                 </div>
             """
-            
+
         # Add verification sources
         if result.get("verification_sources"):
             html += f"""
@@ -412,15 +429,15 @@ def generate_html_report(results: List[Dict], output_file: str):
                     <div class="detail-label">Verification Sources:</div>
                     <div class="detail-value">
             """
-            
+
             for source in result.get("verification_sources", []):
                 html += f"<div class='tag'>{source}</div>"
-                
+
             html += """
                     </div>
                 </div>
             """
-            
+
         # Add compliance checks
         html += f"""
             <div class="compliance">
@@ -431,7 +448,7 @@ def generate_html_report(results: List[Dict], output_file: str):
                 <div>Overall: {"<span class='check'>✓ Compliant</span>" if result.get("compliant", False) else "<span class='cross'>✗ Non-compliant</span>"}</div>
             </div>
         """
-        
+
         # Add recommendations
         if result.get("recommendations"):
             html += f"""
@@ -439,52 +456,55 @@ def generate_html_report(results: List[Dict], output_file: str):
                 <h3>Recommendations</h3>
                 <ul>
             """
-            
+
             for rec in result.get("recommendations", []):
                 html += f"<li>{rec}</li>"
-                
+
             html += """
                 </ul>
             </div>
             """
-            
+
         # Add Teamwork verification if available
         teamwork_verification = result.get("teamwork_verification")
-        if isinstance(teamwork_verification, dict) and teamwork_verification.get("found_in_teamwork", False):
+        if isinstance(teamwork_verification, dict) and teamwork_verification.get(
+            "found_in_teamwork", False
+        ):
             html += f"""
             <div class="teamwork">
                 <h3>Teamwork Verification</h3>
                 <p>Found {len(teamwork_verification.get("matches", []))} previous translations in Teamwork:</p>
                 <ul>
             """
-            
+
             for match in teamwork_verification.get("matches", []):
                 task_name = match.get("task_name", "Unknown task")
                 translation = match.get("translation", "Not specified")
                 html += f"<li>{task_name}: {translation}</li>"
-                
+
             html += """
                 </ul>
             </div>
             """
-            
+
         html += """
             </div>
         </div>
         """
-    
+
     # Close the HTML
     html += """
     </body>
     </html>
     """
-    
+
     # Write to file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(html)
-    
+
     print(f"HTML report saved to {output_file}")
+
 
 if __name__ == "__main__":
     # Sample names for testing
@@ -493,15 +513,15 @@ if __name__ == "__main__":
         "박서준 (Park Seo-joon)",
         "이종석 (Lee Jong-suk)",
         "전지현 (Jun Ji-hyun)",
-        "BTS (방탄소년단)"
+        "BTS (방탄소년단)",
     ]
-    
+
     print("Starting Korean name evaluation...")
     # Evaluate from Korean to English
     ko_en_results = batch_evaluate_names(test_names, "KO-EN")
-    
+
     # Generate HTML report
     generate_html_report(ko_en_results)
-    
+
     print("\nEvaluation complete! View detailed results in the HTML report.")
-    print("Report: name_evaluation_report.html") 
+    print("Report: name_evaluation_report.html")

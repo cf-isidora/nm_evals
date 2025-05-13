@@ -18,16 +18,16 @@ comprehensive evaluation reports that can be used by terminologists and translat
 to ensure compliance with CF naming standards.
 """
 
-import os
 import json
-from typing import Dict, List, Any, Optional
+import os
+from typing import Any, Dict, List, Optional
 
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain.chains.openai_functions import create_structured_output_chain
-from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+from langchain.chains.openai_functions import create_structured_output_chain
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
 # Import Teamwork integration if available
 try:

@@ -22,10 +22,11 @@ write code or understand the underlying implementation details.
 """
 
 import argparse
-import sys
 import json
 import os
+import sys
 from typing import List
+
 from korean_name_evaluator import batch_evaluate_names, generate_html_report
 from terminologists_manual_links import get_verification_process_text
 

@@ -19,16 +19,18 @@ including hyphenation rules, capitalization standards, and NIKL romanization com
 for Korean-to-English, as well as proper transliteration rules for English-to-Korean.
 """
 
-import os
 import json
-from typing import Dict, List, Any, Optional
+import os
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
+
+from english_to_korean_evaluator import evaluate_english_name
+from korean_name_evaluator import generate_html_report
 
 # Import core functionality from existing modules
 from korean_to_english_evaluator import evaluate_korean_name
-from english_to_korean_evaluator import evaluate_english_name
-from korean_name_evaluator import generate_html_report
 
 # Teamwork integration
 try:

@@ -75,6 +75,52 @@ OPENAI_MODEL_NAME=gpt-4o-mini
 OPENAI_TEMPERATURE=0.0
 ```
 
+## Poetry Setup
+
+Poetry is a tool for dependency management and packaging in Python. It allows you to declare the libraries your project depends on and it will manage (install/update) them for you.
+
+### Installation
+
+1. Install Poetry:
+   ```bash
+   curl -sSL https://install.python-poetry.org | python3 -
+   ```
+   
+2. Verify the installation:
+   ```bash
+   poetry --version
+   ```
+
+### Using Poetry
+
+1. Install dependencies:
+   ```bash
+   poetry install
+   ```
+   This will create a virtual environment and install all dependencies listed in the `pyproject.toml` file.
+
+2. Activate the virtual environment:
+   ```bash
+   poetry shell
+   ```
+
+3. Add a new dependency:
+   ```bash
+   poetry add <package-name>
+   ```
+
+4. Update dependencies:
+   ```bash
+   poetry update
+   ```
+
+5. Run a script:
+   ```bash
+   poetry run python <script-name>.py
+   ```
+
+For more information, visit the [Poetry documentation](https://python-poetry.org/docs/).
+
 ## Usage
 
 ### Basic Usage

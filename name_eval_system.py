@@ -23,18 +23,19 @@ guidelines specified in the CF Terminology Management Manual.
 
 import argparse
 import json
-import sys
 import os
-from typing import List, Dict, Any, Optional
+import sys
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
-from korean_name_evaluator import batch_evaluate_names as evaluate_ko_names
-from korean_name_evaluator import generate_html_report
+
 from english_to_korean_evaluator import evaluate_english_names
 from english_to_korean_evaluator import (
     generate_termbase_entries as generate_en_ko_termbase_entries,
 )
+from korean_name_evaluator import batch_evaluate_names as evaluate_ko_names
+from korean_name_evaluator import generate_html_report
 from korean_to_english_evaluator import evaluate_korean_names
 from korean_to_english_evaluator import (
     generate_termbase_entries as generate_ko_en_termbase_entries,
@@ -45,8 +46,8 @@ LANGSMITH_AVAILABLE = False
 try:
     from langsmith_integration import (
         setup_langsmith,
-        trace_name_evaluation,
         setup_name_evaluation_monitoring,
+        trace_name_evaluation,
     )
 
     LANGSMITH_AVAILABLE = True
@@ -62,12 +63,12 @@ except ImportError:
         pass
 
 
-from teamwork_integration import verify_name_in_teamwork, post_evaluation_to_teamwork
+from teamwork_integration import post_evaluation_to_teamwork, verify_name_in_teamwork
 from terminologists_manual_links import (
+    DATA_DIR,
     get_resources_for_direction,
     get_verification_process_text,
     load_manual_content,
-    DATA_DIR,
 )
 
 # Load environment variables

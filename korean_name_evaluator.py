@@ -21,18 +21,18 @@ specialized evaluators build upon, implementing the shared logic and
 verification workflow while allowing for direction-specific customization.
 """
 
-import os
 import json
+import os
 import re
-from typing import Dict, List, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
+from dotenv import load_dotenv
+from langchain.chains.openai_functions import create_structured_output_chain
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers import StrOutputParser
-from langchain.chains.openai_functions import create_structured_output_chain
 from pydantic import BaseModel, Field
-from dotenv import load_dotenv
 
 # Import Teamwork integration if available
 try:

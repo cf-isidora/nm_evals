@@ -22,24 +22,24 @@ providing detailed compliance scores and recommendations.
 This module can also check Teamwork for previous translations of the same name to ensure consistency.
 """
 
-import os
-import sys
 import json
+import os
 import re
-from typing import Dict, List, Any, Optional
+import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain.chains.openai_functions import create_structured_output_chain
-from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+from langchain.chains.openai_functions import create_structured_output_chain
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
 # Use relative imports for our modules
 from terminologists_manual_links import (
-    get_verification_process_text,
     get_resources_for_direction,
+    get_verification_process_text,
 )
 
 # Import functions from the Teamwork integration if available
